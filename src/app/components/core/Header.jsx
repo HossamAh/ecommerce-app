@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import Link from "next/link";
-import { getUser } from "../../features/thunks/UserThunk";
+import { getUser , UserLogout } from "../../features/thunks/UserThunk";
 import { getCart } from "../../features/thunks/CartThunk";
 import { SelectUser, SelectCart } from "../../selectors";
 import axios from 'axios';
@@ -23,19 +23,17 @@ export default function Header() {
   const isAuthPage = pathname === '/login' || pathname === '/register';
   
   const logout = async (accessToken) => {
-    const config = {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      },
-      withCredentials: true
-    };
     try {
-      await axios.get(nextConfig.env.API_URL + "/api/auth/logout", config);
+      dispatch(UserLogout(accessToken));
+      // Clear access token from local storage
+      localStorage.removeItem('accessToken');
       setAccessToken('');
+      
+      // Clear refresh token from cookies
+      document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       router.push('/');
     } catch (error) {
-      console.log(error);
+      console.error("Logout error:", error);
     }
   }
   
@@ -45,20 +43,22 @@ export default function Header() {
       setIsLoading(false);
       return;
     }
-    
+    if(user?.accessToken){
+      setAccessToken(user.accessToken)
+    }
     // Only fetch user data if we have an access token
     if (accessToken) {
       dispatch(getUser(accessToken))
-        .then(() => {
-          dispatch(getCart(accessToken));
-        })
-        .finally(() => {
+      .then(() => {
+          dispatch(getCart(accessToken))
+        }).finally(()=>{
           setIsLoading(false);
+
         });
     } else {
       setIsLoading(false);
     }
-  }, [dispatch, accessToken, isAuthPage]);
+  }, [dispatch,user?.accessToken ,accessToken, isAuthPage]);
   
   // Show minimal loading state
   if (isLoading) {
@@ -79,7 +79,7 @@ export default function Header() {
               </Link>
             </li>
             {
-              user?.user.role==='admin' &&
+              user?.user?.role==='admin' &&
             <li>
               <Link href='/dashboard' >
                 Dashboard
@@ -88,7 +88,7 @@ export default function Header() {
             }
           </ul>
           <ul className="flex space-x-4">
-            {user?.user && user?.loadingStatus === "completed" ? (
+            {user?.user !== null && user?.loadingStatus === "completed" ? (
               <>
                 <li>
                   <Link href="/profile">{user.user.name}</Link>
@@ -106,16 +106,16 @@ export default function Header() {
                 </li>
               )
             )}
+                {user?.user !== null && cart?.cartItems?.length > 0 && (
             <li>
               <Link href="/cart" className="relative">
                 Cart
-                {cart?.cartItems?.length > 0 && (
                   <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
                     {cart.cartItems.length}
                   </span>
-                )}
               </Link>
             </li>
+                )}
           </ul>
         </nav>
       </div>

@@ -9,6 +9,7 @@ import useLocalStorage from '../../utils/LocalStorage';
 import { useRouter } from 'next/navigation';
 import CartActions from '../../components/cartComponents/CartActions';
 import { getCart } from "../../features/thunks/CartThunk";
+import DOMPurify from 'dompurify';
 
 export default function ProductDetails({ params }) {
   const resolvedParams = use(params);
@@ -19,15 +20,18 @@ export default function ProductDetails({ params }) {
   const loadingState = useSelector(getLoadingState);
   const product = useSelector(getCurrentProduct);
   const cart = useSelector(SelectCart);
-  const [accessToken,setAcessToken] = useLocalStorage('accessToken','' );
+  const [accessToken,setAccessToken] = useLocalStorage('accessToken','' );
   const [availableColors, setAvailableColors] = useState([]);
   const [availableSizes, setAvailableSizes] = useState([]);
   const [currentColor, setCurrentColor] = useState('');
   const [currentSize, setCurrentSize] = useState('');
+  const [oldPrice, setOldPrice] = useState('');
   const [currentPrice, setCurrentPrice] = useState('');
   const [currentImages, setCurrentImages] = useState(null);
+  const [currentImage, setCurrentImage] = useState(null);
   const [currentStock, setCurrentStock] = useState(undefined);
   const [selectedVariantId, setSelectedVariantId] = useState(null);
+  const [paragraph,setParagraph] = useState('');
 
   useEffect(() => {
     if (productID) {
@@ -42,6 +46,29 @@ export default function ProductDetails({ params }) {
     }
   }, [dispatch, accessToken]);
 
+  // Sanitize the HTML string to remove any malicious code
+  useEffect(()=>{
+    if(product?.description){
+      console.log(product.description);
+      setParagraph(DOMPurify.sanitize(product.description));
+    }
+  },[product])
+
+  // construct current images from the product images and main image and variants images
+  useEffect(()=>{
+    if(product)
+    {
+      console.log(product);
+    let variantsImages = [];
+    product?.ProductVariants?.forEach((variant)=>{
+      variantsImages.push(variant.ProductImage);
+    });
+    console.log(variantsImages);
+    console.log(product.ProductImages);
+    setCurrentImages([...product.ProductImages,...variantsImages]);
+  }
+  },[product])
+
   // First, let's extract unique colors and sizes from the variants
   useEffect(() => {
     if (product?.ProductVariants) {
@@ -50,17 +77,19 @@ export default function ProductDetails({ params }) {
       const uniqueSizes = [];
       const colorMap = new Map();
       const sizeMap = new Map();
-      
       Object.values(product.ProductVariants).forEach(variant => {
-        if (variant.Color && !colorMap.has(variant.Color.id)) {
-          colorMap.set(variant.Color.id, variant.Color);
-          uniqueColors.push(variant.Color);
+        variant.ProductAttributeValues.forEach(attributeValue=>{
+        if (attributeValue.ProductAttribute.name==='color' && !colorMap.has(attributeValue.id)) {
+          colorMap.set(attributeValue.id, attributeValue.value);
+          uniqueColors.push(attributeValue);
         }
         
-        if (variant.Size && !sizeMap.has(variant.Size.id)) {
-          sizeMap.set(variant.Size.id, variant.Size);
-          uniqueSizes.push(variant.Size);
+        if (attributeValue.ProductAttribute.name==='size' && !sizeMap.has(attributeValue.id)) {
+          sizeMap.set(attributeValue.id, attributeValue.value);
+          uniqueSizes.push(attributeValue);
         }
+        });
+
       });
       
       setAvailableColors(uniqueColors);
@@ -68,10 +97,10 @@ export default function ProductDetails({ params }) {
       
       // Set default selections if available
       if (uniqueColors.length > 0 && !currentColor) {
-        setCurrentColor(uniqueColors[0].name);
+        setCurrentColor(uniqueColors[0]);
       }
       if (uniqueSizes.length > 0 && !currentSize) {
-        setCurrentSize(uniqueSizes[0].name);
+        setCurrentSize(uniqueSizes[0]);
       }
     }
   }, [product]);
@@ -81,20 +110,23 @@ export default function ProductDetails({ params }) {
     if (product?.ProductVariants && currentColor && currentSize) {
       // Find the variant that matches the selected color and size
       const selectedVariant = Object.values(product.ProductVariants).find(variant => 
-        variant.Color?.name === currentColor && variant.Size?.name === currentSize
+        
+        // variant.ProductAttributeValues.find((valueObj=>valueObj.value === currentColor.value))  && variant.ProductAttributeValues.find((valueObj=>valueObj.value === currentSize.value))
+        variant.ProductAttributeValues.find((valueObj=>valueObj.value === currentColor.value))
       );
       
       if (selectedVariant) {
         // Update price
-        const discountedPrice = selectedVariant.discount_percentage 
-          ? selectedVariant.price * (1 - selectedVariant.discount_percentage / 100) 
+        setOldPrice(selectedVariant.price.toFixed(2));
+        const discountedPrice = product.discount_percentage 
+          ? selectedVariant.price * (1 - product.discount_percentage / 100) 
           : selectedVariant.price;
         
         setCurrentPrice(discountedPrice.toFixed(2));
         
         // Update images
-        if (selectedVariant.ProductImages && selectedVariant.ProductImages.length > 0) {
-          setCurrentImages(selectedVariant.ProductImages);
+        if (selectedVariant.ProductImage ) {
+          setCurrentImage(selectedVariant.ProductImage);
         }
         
         // Update stock information
@@ -122,16 +154,23 @@ export default function ProductDetails({ params }) {
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-4 text-center">{product.name}</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Display product images based on selected variant */}
+          {/* Display product images based on selected variant */}
+          <div className="relative w-full h-full">
+            {product.discount_percentage>0 &&
+            (<div className="absolute bg-blue-500 p-2 rounded-tr-xl rounded-bl-xl z-20 right-3 top-3">
+              <h3 className="font-semibold text-white">- {product.discount_percentage}%</h3>
+            </div>)
+            }
+
           {currentImages && currentImages.length > 0 ? (
-            <ProductImages ProductImages={currentImages} />
-          ) : (
-            product.ProductImages?.length > 0 && (
-              <ProductImages ProductImages={product.ProductImages} />
-            )
-          )}
+            <ProductImages ProductImages={currentImages}  currentImage={currentImage} />
+          ):''
+          }
+          </div>
         <div className="flex flex-col gap-4">
-          <p className="text-gray-700 mb-4">{product.description}</p>
+          {/* <p className="text-gray-700 mb-4">{product.description}</p> */}
+          <div dangerouslySetInnerHTML={{ __html: paragraph }} />
+
           
           {/* Color variants */}
           {availableColors.length > 0 && (
@@ -142,11 +181,11 @@ export default function ProductDetails({ params }) {
                   <button
                     key={color.id}
                     className={`px-4 py-2 rounded-full flex items-center gap-2 ${
-                      color.name === currentColor
+                      color === currentColor
                         ? 'bg-blue-500 text-white'
                         : 'bg-gray-200'
                     }`}
-                    onClick={() => setCurrentColor(color.name)}
+                    onClick={() => setCurrentColor(color)}
                     style={{ borderColor: color.code }}
                   >
                     <span 
@@ -169,13 +208,13 @@ export default function ProductDetails({ params }) {
                   <button
                     key={size.id}
                     className={`px-4 py-2 rounded-full ${
-                      size.name === currentSize
+                      size === currentSize
                         ? 'bg-blue-500 text-white'
                         : 'bg-gray-200'
                     }`}
-                    onClick={() => setCurrentSize(size.name)}
+                    onClick={() => setCurrentSize(size)}
                   >
-                    {size.name}
+                    {size.code}
                   </button>
                 ))}
               </div>
@@ -183,9 +222,14 @@ export default function ProductDetails({ params }) {
           )}
 
           {/* Display current price */}
-          <p className="text-2xl font-bold text-green-600 mb-2">
-            ${currentPrice || (product.price ? product.price.toFixed(2) : '0.00')}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-lg font-semibold text-gray-600 line-through mb-2">
+              ${oldPrice||(product.base_price ? product.base_price.toFixed(2) : '0.00')}
+            </p>
+            <p className="text-2xl font-bold text-green-600 mb-2">
+              ${currentPrice||(product.base_price && product.discount_percentage ? (product.base_price -(product.base_price*product.discount_percentage/100) ).toFixed(2) : '0.00')}
+            </p>
+          </div>
 
           {/* Display stock information */}
           {currentStock !== undefined && (
@@ -209,7 +253,6 @@ export default function ProductDetails({ params }) {
               dispatch(getCart(accessToken));
             }}
             variantId={selectedVariantId}
-
           />
         </div>
       </div>

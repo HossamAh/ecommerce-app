@@ -20,10 +20,7 @@ export const metadata = {
 
 export default function DashboardLayout({ children }) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    
         <StoreProvider>
           <div className="flex">
             <aside className="w-64 bg-gray-800 text-white min-h-screen p-4">
@@ -32,10 +29,10 @@ export default function DashboardLayout({ children }) {
                 <ul className="space-y-2">
                   <li><a href="/dashboard" className="block p-2 hover:bg-gray-700 rounded">Overview</a></li>
                   <li><a href="/dashboard/products" className="block p-2 hover:bg-gray-700 rounded">Products</a></li>
+                  <li><a href="/dashboard/categories" className="block p-2 hover:bg-gray-700 rounded">Categories</a></li>
                   <li><a href="/dashboard/orders" className="block p-2 hover:bg-gray-700 rounded">Orders</a></li>
                   <li><a href="/dashboard/customers" className="block p-2 hover:bg-gray-700 rounded">Customers</a></li>
-                  <li><a href="/dashboard/settings" className="block p-2 hover:bg-gray-700 rounded">Settings</a></li>
-                </ul>
+                  </ul>
               </nav>
             </aside>
             <main className="flex-1 p-6">
@@ -43,8 +40,7 @@ export default function DashboardLayout({ children }) {
             </main>
           </div>
         </StoreProvider>
-      </body>
-    </html>
+      
   );
 }
 

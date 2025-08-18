@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { loadProducts, getProduct } from "./thunks/ProductThunks";
+import { loadProducts, getProduct, deleteProduct } from "./thunks/ProductThunks";
 
 const ProductSlice = createSlice({
   name: "products",
@@ -53,6 +53,26 @@ const ProductSlice = createSlice({
         state.productsLoadingState = "failed";
         state.currentProduct = null;
       });
+
+    // Handle deleteProduct thunk
+    builder
+      .addCase(deleteProduct.pending, (state) => {
+        state.productsLoadingState = "loading";
+        state.currentProduct = null;
+      })
+      .addCase(deleteProduct.fulfilled, (state, action) => {
+        state.productsLoadingState = "completed";
+        
+        let product_id = action.payload;
+        state.products.filter(p => p.id !== product_id);
+      
+      })
+      .addCase(deleteProduct.rejected, (state) => {
+        state.productsLoadingState = "failed";
+        state.currentProduct = null;
+      });
+
+
   }
 });
 

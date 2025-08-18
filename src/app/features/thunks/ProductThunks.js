@@ -2,15 +2,15 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from 'axios';
 import nextConfig from '../../../../next.config.mjs';
 
-// Create a completely new thunk with a different name
 export const loadProducts = createAsyncThunk(
   "products/loadProductsList",
-  async (page=1) => {
-    let products = await axios.get(
-      nextConfig.env.API_URL+'/api/products?page='+page, 
-      {withCredentials:true}
+  async ({ page = 1, pageSize = 10 }) => {
+    console.log("inside load products thunk", page, pageSize);
+    const response = await axios.get(
+      `${nextConfig.env.API_URL}/api/products?page=${page}&pageSize=${pageSize}`, 
+      { withCredentials: true }
     );
-    return products.data;
+    return response.data;
   }
 );
 
@@ -21,6 +21,22 @@ export const getProduct = createAsyncThunk(
     let products = await axios.get(
       nextConfig.env.API_URL+`/api/products/${productID}`, 
       {withCredentials:true}
+    );
+    return products.data;
+  }
+);
+
+export const deleteProduct = createAsyncThunk(
+  "products/deleteProduct",
+  async (productID,accessToken) => {
+    let products = await axios.delete(
+      nextConfig.env.API_URL+`/api/products/${productID}`, 
+      {
+        headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    }
+        ,withCredentials:true}
     );
     return products.data;
   }

@@ -5,8 +5,11 @@ import * as Yup from "yup";
 import nextConfig from "../../../../next.config.mjs";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import {useDispatch} from 'react-redux';
 import useLocalStorage from '../../utils/LocalStorage';
+import {UserLogin} from '../../features/thunks/UserThunk';
 export default function RegisterFrom() {
+  const dispatch = useDispatch();
   const initialState = {
     name: "",
     email: "",
@@ -21,7 +24,6 @@ export default function RegisterFrom() {
   const [errorState, setErrorState] = useState();
   const router = useRouter();
 
-  const [accessToken,setAccessToken] = useLocalStorage('accessToken','');
   const handleSubmit = async (values) => {
     console.log("on login handle submit");
     const formData = new FormData();
@@ -29,22 +31,9 @@ export default function RegisterFrom() {
     formData.append("password", values.password);
 
     try {
-      const response = await axios.post(
-        nextConfig.env.API_URL + "/api/auth/login",
-        formData,
-        {
-          withCredentials: true,
-          // headers: {
-          //     'Content-Type': 'multipart/form-data',
-          // },
-        }
-      );
-
-      if (response.status === 200) {
-        //receive the access token and store it in the local storage.
-        setAccessToken(response.data.accessToken);
-        router.push("/");
-      }
+        await dispatch(UserLogin(formData));
+        setTimeout(()=>router.push("/"),1000);
+      
     } catch (error) {
       setErrorState("incorrect email or password.");
       console.error(error);

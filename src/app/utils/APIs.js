@@ -1,8 +1,6 @@
-'use client';
-import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from 'axios';
-import nextConfig from '../../../../next.config.mjs';
-import {ClearCart} from '../CartSlice'
+import nextConfig from '../../../next.config.mjs';
+
 // Create axios instance with default config
 const api = axios.create({
   baseURL: nextConfig.env.API_URL,
@@ -47,49 +45,23 @@ api.interceptors.response.use(
   }
 );
 
-export const getUser = createAsyncThunk("user/getUser", async (accessToken) => {
-    try {
-        const response = await api.get('/api/auth/profile', {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        return response.data;
-    } catch (error) {
-        throw error;
+exports.getProductVariantAttributes = async ()=>{
+    try{
+      const attributes = await api.get(`${nextConfig.env.API_URL}/api/productAttributes/`);
+      return attributes;
     }
-});
-
-
-export const UserLogin = createAsyncThunk(
-    "user/login",
-    async (credentials, { dispatch }) => {
-        const response = await axios.post(
-            nextConfig.env.API_URL + "/api/auth/login",
-            credentials,
-            { withCredentials: true }
-        );
-        
-        // After successful login, dispatch getUser
-        await dispatch(getUser(response.data.accessToken));
-        
-        return response.data;
+    catch(error){
+        console.log(error);
     }
-);
 
-export const UserLogout = createAsyncThunk("user/UserLogout",async (accessToken,{dispatch})=>{
+}
+
+exports.getProductVariantAttributesValueByAttribute = async (attributeId)=>{
   try{
-    const response = await axios.get(nextConfig.env.API_URL + "/api/auth/logout", {headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
-            }
-          });
-    dispatch(ClearCart);
-    return response.data;
-
+    const attributeValues = await api.get(`${nextConfig.env.API_URL}/api/productAttributeValues/attribute/${attributeId}`)
+    return attributeValues;
   }
   catch(error){
-    throw error;
+    console.log(error);
   }
-});
+}
