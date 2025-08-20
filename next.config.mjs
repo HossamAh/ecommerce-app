@@ -3,8 +3,9 @@ const nextConfig = {
     // next.config.js
     env: {
       API_URL: process.env.NODE_ENV === 'production' 
-        ? 'https://todo-list-backend-production-0aa9.up.railway.app' 
+        ? 'https://ecommerce-backend-2-production.up.railway.app' 
         : 'http://localhost:7000'
+        
     }
 };
 
