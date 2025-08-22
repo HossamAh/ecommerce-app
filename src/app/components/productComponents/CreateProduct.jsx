@@ -51,10 +51,12 @@ const CreateProduct = () => {
         })
     });
 
-    const { data: variantAttributes, isFetching: isFetchingVariantAttributes } = useQuery({
+    const { data: productAttributesData, isFetching: isFetchingVariantAttributes } = useQuery({
         queryKey: ['VariantAttributesData'],
-        queryFn: getProductVariantAttributes,
-        select: (data) => {console.log(data.data); return data.data;}
+        queryFn: () => getProductVariantAttributes({
+            page: 1,
+            pageSize: 100
+        })
     });
 
     const initialValues = {
@@ -140,7 +142,7 @@ const CreateProduct = () => {
     if (isPending) return 'Loading...';
     if (error) return 'An error has occurred: ' + error.message;
     if (isFetching || isFetchingVariantAttributes) return 'Updating...';
-
+    const productAttributes = productAttributesData?.data?.productAttributes || [];
     return (
         <div className="p-6">
             <h1 className="mb-6 text-3xl font-bold">Create Product</h1>
@@ -237,7 +239,7 @@ const CreateProduct = () => {
                                                                             setFieldValue(`variants.${index}.variantsAttributes.${attrIndex}.value`, ''); // Reset value on name change
                                                                         }}>
                                                                             <option value="">Select Name</option>
-                                                                            {variantAttributes?.map((att) => (
+                                                                            {productAttributes?.map((att) => (
                                                                                 <option key={att.id} value={att.id}>{att.name}</option>
                                                                             ))}
                                                                         </Field>

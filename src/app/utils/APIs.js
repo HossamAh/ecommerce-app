@@ -1,5 +1,6 @@
 import axios from 'axios';
 import nextConfig from '../../../next.config.mjs';
+import { deleteProduct } from './../features/thunks/ProductThunks';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -45,12 +46,11 @@ api.interceptors.response.use(
   }
 );
 
-exports.getProductVariantAttributes = async ()=>{
-    try{
-      const attributes = await api.get(`${nextConfig.env.API_URL}/api/productAttributes/`);
-      return attributes;
-    }
-    catch(error){
+exports.getProductVariantAttributes = async (page,pageSize) => {
+    try {
+        const attributes = await api.get(`${nextConfig.env.API_URL}/api/productAttributes/?page=${page}&pageSize=${pageSize}`);
+        return attributes;
+    } catch (error) {
         console.log(error);
     }
 
@@ -60,6 +60,102 @@ exports.getProductVariantAttributesValueByAttribute = async (attributeId)=>{
   try{
     const attributeValues = await api.get(`${nextConfig.env.API_URL}/api/productAttributeValues/attribute/${attributeId}`)
     return attributeValues;
+  }
+  catch(error){
+    console.log(error);
+  }
+}
+
+exports.createProductVariantAttributes = async({accessToken,data})=>{
+  console.log(data);
+  try{
+    const result = await api.post(`${nextConfig.env.API_URL}/api/productAttributes/`,data,
+      {headers: {
+            'Authorization': `Bearer ${accessToken}`
+        }})
+
+        return result;
+  }
+  catch(error){
+    console.log(error);
+  }
+}
+
+
+
+exports.updateProductVariantAttributes = async({accessToken,attributeId,data})=>{
+  try{
+    const result = await api.put(`${nextConfig.env.API_URL}/api/productAttributes/${attributeId}`,data,
+      {headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'multipart/form-data'
+        }})
+        return result;
+  }
+  catch(error){
+    console.log(error);
+  }
+}
+
+exports.deleteProductVariantAttributes = async({accessToken,attributeId})=>{
+  try{
+    const result = await api.delete(`${nextConfig.env.API_URL}/api/productAttributes/${attributeId}`,
+      {headers: {
+            'Authorization': `Bearer ${accessToken}`
+        }})
+      return result;
+  }
+  catch(error){
+    console.log(error);
+  }
+}
+
+
+exports.createProductVariantAttributesValue = async({accessToken,data})=>{
+  console.log(data);
+  try{
+    const result = await api.post(`${nextConfig.env.API_URL}/api/productAttributeValues/`,data,
+      {headers: {
+            'Authorization': `Bearer ${accessToken}`
+        }})
+        return result;
+  }
+  catch(error){
+    console.log(error);
+  }
+}
+
+exports.getProductVariantAttributesValue = async(page,pageSize)=>{
+
+  try{
+    const result = await api.get(`${nextConfig.env.API_URL}/api/productAttributeValues/?page=${page}&pageSize=${pageSize}`)
+    return result;
+  }
+  catch(error){
+    console.log(error);
+  }
+}
+
+exports.updateProductVariantAttributesValue = async({accessToken,id,data})=>{
+  try{
+    const result = await api.put(`${nextConfig.env.API_URL}/api/productAttributeValues/${id}`,data,
+      {headers: {
+            'Authorization': `Bearer ${accessToken}`
+        }})
+        return result;
+  }
+  catch(error){
+    console.log(error);
+  }
+}
+
+exports.deleteProductVariantAttributesValue = async({accessToken,id})=>{
+  try{
+    const result = await api.delete(`${nextConfig.env.API_URL}/api/productAttributeValues/${id}`,
+      {headers: {
+            'Authorization': `Bearer ${accessToken}`
+        }})
+      return result;
   }
   catch(error){
     console.log(error);

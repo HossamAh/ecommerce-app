@@ -79,12 +79,12 @@ export default function ProductDetails({ params }) {
       const sizeMap = new Map();
       Object.values(product.ProductVariants).forEach(variant => {
         variant.ProductAttributeValues.forEach(attributeValue=>{
-        if (attributeValue.ProductAttribute.name==='color' && !colorMap.has(attributeValue.id)) {
+        if ((attributeValue.ProductAttribute.name==='color'|| attributeValue.ProductAttribute.name==='Color') && !colorMap.has(attributeValue.id)) {
           colorMap.set(attributeValue.id, attributeValue.value);
           uniqueColors.push(attributeValue);
         }
         
-        if (attributeValue.ProductAttribute.name==='size' && !sizeMap.has(attributeValue.id)) {
+        if ((attributeValue.ProductAttribute.name==='size'||attributeValue.ProductAttribute.name==='Size') && !sizeMap.has(attributeValue.id)) {
           sizeMap.set(attributeValue.id, attributeValue.value);
           uniqueSizes.push(attributeValue);
         }

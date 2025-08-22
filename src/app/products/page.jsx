@@ -15,6 +15,7 @@ export default function Products(){
     const products = useSelector(getProducts);
     let currentPage = useSelector(getCurrentPage);
     let totalPages = useSelector(getTotalPages); 
+    
     const cart = useSelector(SelectCart);
     const [accessToken,setAcessToken] = useLocalStorage('accessToken','' );
     const dispatch = useDispatch();
@@ -40,6 +41,7 @@ export default function Products(){
                             {/* <p className="text-gray-600 mt-2">{product.description}</p> */}
                             <div className="flex justify-between items-center mt-2 gap-4">
                                 <p className="text-green-600 font-bold ">${product.base_price}</p>
+                                
                                 <CartActions
                                 product={product}
                                             cart={cart}

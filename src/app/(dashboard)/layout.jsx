@@ -30,6 +30,8 @@ export default function DashboardLayout({ children }) {
                   <li><a href="/dashboard" className="block p-2 hover:bg-gray-700 rounded">Overview</a></li>
                   <li><a href="/dashboard/products" className="block p-2 hover:bg-gray-700 rounded">Products</a></li>
                   <li><a href="/dashboard/categories" className="block p-2 hover:bg-gray-700 rounded">Categories</a></li>
+                  <li><a href="/dashboard/variantAttribute" className="block p-2 hover:bg-gray-700 rounded">Variant Attributes</a></li>
+                  <li><a href="/dashboard/variantAttributeValues" className="block p-2 hover:bg-gray-700 rounded">Variant Attributes Values</a></li>
                   <li><a href="/dashboard/orders" className="block p-2 hover:bg-gray-700 rounded">Orders</a></li>
                   <li><a href="/dashboard/customers" className="block p-2 hover:bg-gray-700 rounded">Customers</a></li>
                   </ul>
