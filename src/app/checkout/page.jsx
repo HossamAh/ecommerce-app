@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Truck, ArrowLeft, ArrowRight } from "lucide-react";
 import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from "react-redux";
-import { SelectCart } from "../selectors";
+import { SelectCart,SelectUser } from "../selectors";
 import useLocalStorage from "../utils/LocalStorage";
 import { getCart } from "../features/thunks/CartThunk";
 import CheckoutSteps from '../components/checkoutComponents/steps';
@@ -17,6 +17,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import {useRouter} from 'next/navigation';
 // Import Button directly from the file path
 import { Button } from '../components/ui/button';
+import GuestCartItemsList from "../components/cartComponents/GuestCartItemsList";
 
 import {ClearCart} from '../features/CartSlice';
 export default function Checkout(){
@@ -25,6 +26,7 @@ export default function Checkout(){
     const [error, setError] = useState(null); // Add error state
     const dispatch = useDispatch();
     const cart = useSelector(SelectCart);
+    const user = useSelector(SelectUser);
     const router =useRouter();
     const [accessToken,setAccessToken] = useLocalStorage("accessToken", "");
     const [shippingInfo, setShippingInfo] = useState(null);
@@ -134,19 +136,20 @@ export default function Checkout(){
                             </div>
                             {/* order Summary */}
                             <div className='flex flex-col rounded-lg border border-gray-300 bg-white text-[#020817] shadow-sm p-6 gap-4'>
-                                <CartItemsList 
-                                  cartItems={cart.cartItems} 
-                                  cart={cart} 
-                                  accessToken={accessToken} 
-                                  dispatch={dispatch} 
-                                  getCart={getCart} 
-                                  cartPage={false}
-                                />
-                                <OrderSummary 
-                                  totalPrice={totalPrice} 
-                                  shippingFee={shippingFee} 
-                                  cartPage={false}
-                                />
+                                
+                                {user.user ? (
+          <CartItemsList
+            cartItems={cart.cartItems}
+            cart={cart}
+            accessToken={accessToken}
+            dispatch={dispatch}
+            getCart={getCart}
+            cartPage={false}
+          />
+        ) : (
+          <GuestCartItemsList cartItems={cart.cartItems} cart={cart} cartPage={false} />
+        )}
+        <OrderSummary totalPrice={totalPrice} shippingFee={shippingFee} cartPage={false} />
                             </div>
                         </div>
                     </div>

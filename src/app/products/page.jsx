@@ -2,19 +2,24 @@
 import { useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux";
 import { loadProducts } from "../features/thunks/ProductThunks";
-import { getProducts, getCurrentPage, getTotalPages,SelectCart } from "../selectors";
+import { getProducts, getCurrentPage, getTotalPages,SelectCart,SelectUser } from "../selectors";
 import { updateCurrentPage } from "../features/ProductsSlice";
 import useLocalStorage from '../utils/LocalStorage';
 import Image from "next/image";
 import Link from "next/link";
 import { getCart } from "../features/thunks/CartThunk";
 import CartActions from '../components/cartComponents/CartActions';
+import GuestCartActions from '../components/cartComponents/GuestCartActions';
 import nextConfig from '../../../next.config.mjs';
+import { useRouter } from 'next/navigation';
+
 
 export default function Products(){
+    const router = useRouter();
     const products = useSelector(getProducts);
     let currentPage = useSelector(getCurrentPage);
     let totalPages = useSelector(getTotalPages); 
+    let user = useSelector(SelectUser); 
     
     const cart = useSelector(SelectCart);
     const [accessToken,setAcessToken] = useLocalStorage('accessToken','' );
@@ -41,8 +46,8 @@ export default function Products(){
                             {/* <p className="text-gray-600 mt-2">{product.description}</p> */}
                             <div className="flex justify-between items-center mt-2 gap-4">
                                 <p className="text-green-600 font-bold ">${product.base_price}</p>
-                                
-                                <CartActions
+                                {user?.user?
+                                (<CartActions
                                 product={product}
                                             cart={cart}
                                             accessToken={accessToken}
@@ -51,7 +56,19 @@ export default function Products(){
                                               router.push('/cart');
                                             }}
                                             variantId={product?.ProductVariants[0]?.id}
-                                ></CartActions>
+                                ></CartActions>)
+                                :
+                                (
+                                <GuestCartActions
+                                product={product}
+                                            onAddToCart={() => {
+                                              router.push('/cart');
+                                            }}
+                                            variant={product?.ProductVariants[0]}
+                                ></GuestCartActions>)}
+                                
+                                
+                                
                             </div>
                         </Link>
                     );

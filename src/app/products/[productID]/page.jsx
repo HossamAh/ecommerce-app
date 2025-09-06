@@ -2,12 +2,13 @@
 import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { use } from 'react';
-import { getCurrentProduct, getLoadingState, SelectCart } from '../../selectors';
+import { getCurrentProduct, getLoadingState, SelectCart,SelectUser } from '../../selectors';
 import { getProduct } from '../../features/thunks/ProductThunks';
 import ProductImages from '../../components/productComponents/ProductImages';
 import useLocalStorage from '../../utils/LocalStorage';
 import { useRouter } from 'next/navigation';
 import CartActions from '../../components/cartComponents/CartActions';
+import GuestCartActions from '../../components/cartComponents/GuestCartActions';
 import { getCart } from "../../features/thunks/CartThunk";
 import DOMPurify from 'dompurify';
 
@@ -20,6 +21,7 @@ export default function ProductDetails({ params }) {
   const loadingState = useSelector(getLoadingState);
   const product = useSelector(getCurrentProduct);
   const cart = useSelector(SelectCart);
+  const user = useSelector(SelectUser);
   const [accessToken,setAccessToken] = useLocalStorage('accessToken','' );
   const [availableColors, setAvailableColors] = useState([]);
   const [availableSizes, setAvailableSizes] = useState([]);
@@ -31,7 +33,10 @@ export default function ProductDetails({ params }) {
   const [currentImage, setCurrentImage] = useState(null);
   const [currentStock, setCurrentStock] = useState(undefined);
   const [selectedVariantId, setSelectedVariantId] = useState(null);
+  const [selectedVariant, setSelectedVariant] = useState(null);
   const [paragraph,setParagraph] = useState('');
+
+
 
   useEffect(() => {
     if (productID) {
@@ -134,6 +139,7 @@ export default function ProductDetails({ params }) {
         
         // Store the selected variant ID
         setSelectedVariantId(selectedVariant.id);
+        setSelectedVariant(selectedVariant);
       }
     }
   }, [currentColor, currentSize, product]);
@@ -240,20 +246,34 @@ export default function ProductDetails({ params }) {
             </p>
           )}
 
-
-          <CartActions 
+          {user?.user?
+          (
+            <CartActions 
+              product={product}
+              cart={cart}
+              accessToken={accessToken}
+              onAddToCart={() => {
+                dispatch(getCart(accessToken));
+                router.push('/cart');
+              }}
+              onRemoveFromCart={() => {
+                dispatch(getCart(accessToken));
+              }}
+              variantId={selectedVariantId}
+            />
+          ):
+          (
+            <GuestCartActions 
             product={product}
-            cart={cart}
-            accessToken={accessToken}
             onAddToCart={() => {
-              dispatch(getCart(accessToken));
               router.push('/cart');
             }}
             onRemoveFromCart={() => {
-              dispatch(getCart(accessToken));
             }}
-            variantId={selectedVariantId}
+            variant={selectedVariant}
           />
+          )}
+          
         </div>
       </div>
     </div>

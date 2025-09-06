@@ -1,11 +1,14 @@
 import React from 'react';
 import Link from "next/link";
-import CartActions from "./CartActions";
+import GuestCartActions from "./GuestCartActions";
 import {useEffect} from 'react';
 import nextConfig from '../../../../next.config.mjs';
+import { useRouter } from 'next/navigation';
 
-export default function CartItemsList({ cartItems, cart, accessToken, handleItemRemoval, dispatch, getCart,cartPage=true }) {
-  useEffect(()=>console.log("inside  cart list"),[]);
+export default function GuestCartItemsList({ cartItems, cart, handleItemRemoval,cartPage=true }) {
+  const router = useRouter();
+  useEffect(()=>console.log("inside guest cart list:",cartItems),[]);
+  //guest cart item only have id,ProductVariantId ,quantity 
   return (
     <div className="grid grid-cols-1 gap-4">
       {cartItems.map((item) => (
@@ -14,10 +17,10 @@ export default function CartItemsList({ cartItems, cart, accessToken, handleItem
           className="border border-gray-300 p-4 rounded-lg shadow grid grid-cols-1 items-center gap-4"
         >
           <div className="flex justify-between gap-4">
-            <Link href={`/products/${item.ProductVariant.ProductId}`} className="flex-shrink-0" >
-              {item.ProductVariant?.ProductImage?.url && (
+            <Link href={`/products/${item?.ProductVariant?.ProductId}`} className="flex-shrink-0" >
+              {item?.ProductVariant?.ProductImage?.url && (
                 <img
-                  src={(item.ProductVariant?.ProductImage?.url.includes("uploads"))
+                  src={(item?.ProductVariant?.ProductImage?.url.includes("uploads"))
                     ? `${nextConfig.env.API_URL}/${item.ProductVariant?.ProductImage?.url}`
                     : item.ProductVariant?.ProductImage?.url
                   }
@@ -27,13 +30,13 @@ export default function CartItemsList({ cartItems, cart, accessToken, handleItem
               )}
             </Link>
             <div className="flex-grow">
-              <Link href={`/products/${item.ProductVariant.ProductId}`}>
-                <h2 className="text-xl font-semibold">{item.ProductVariant.Product.name}</h2>
+              <Link href={`/products/${item?.Product?.id}`}>
+                <h2 className="text-xl font-semibold">{item?.Product?.name}</h2>
               </Link>
               <p className="text-green-600 font-bold">
-                ${(item.ProductVariant.price).toFixed(2)}
+                ${(item?.ProductVariant?.price).toFixed(2)}
               </p>
-              <p className="text-gray-600">Quantity: {item.quantity}</p>
+              <p className="text-gray-600">Quantity: {item?.quantity}</p>
               {item?.ProductVariant?.ProductAttributeValues.map((attributeValue)=>
                 <p key={attributeValue.id} className="text-gray-600">{attributeValue.ProductAttribute.name}: {attributeValue.value}</p>
               )}
@@ -42,19 +45,18 @@ export default function CartItemsList({ cartItems, cart, accessToken, handleItem
             </div>
           </div>
           { cartPage &&
-          (<CartActions
-            product={item.ProductVariant.Product}
-            cart={cart}
-            accessToken={accessToken}
-            isCartItem={true}
-            onRemoveFromCart={() => {
-              handleItemRemoval(item.id);
-              dispatch(getCart(accessToken));
+          (<GuestCartActions
+            product={item?.Product}
+            onAddToCart={() => {
+            router.push('/cart');
             }}
-            onAddToCart={() => dispatch(getCart(accessToken))}
-            variantId={item.ProductVariant.id}
-          />)
-          }
+            isCartItem={true}
+            onRemoveFromCart={() => (
+              handleItemRemoval(item.id)
+            )}
+            variant={item?.ProductVariant}
+          />
+          )}
         </div>
       ))}
     </div>

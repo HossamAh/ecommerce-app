@@ -16,6 +16,40 @@ const cartSlice = createSlice({
             state.cartItems=[];
             state.cartID='';
             state.cartTotalPrice=0;
+            state.cartLoadingState='';
+            state.addState='';
+            state.removeState='';
+            state.updateState='';
+        },
+        GuestAddToCart:(state,action)=>{
+            
+            let cartItem = action.payload.cartItem;
+            const item = state.cartItems.find(item=>item?.ProductVariantId == cartItem.ProductVariantId);
+            if(!item){
+                cartItem = {id:state?.cartItems?.length>0?state?.cartItems?.length+1:1,...cartItem}
+                state.cartItems.push(cartItem);
+                state.cartTotalPrice += action.payload.price;
+            }
+        },
+        GuestUpdateCartItem:(state,action)=>{
+            console.log("inside guest update:",action.payload);
+            const cartItemId = action.payload.cartItem.id;
+            const cartItemQuantity = action.payload.cartItem.quantity;
+            state.cartItems = state.cartItems.map(item=>item.id===cartItemId?{...item,quantity:cartItemQuantity}:item)
+            state.cartTotalPrice -= action.payload.oldPrice;
+            state.cartTotalPrice += action.payload.price;
+        },
+        GuestRemoveFromCart:(state,action)=>{
+            console.log("payload inside remove action",action.payload.cartItem.id);
+            
+            let cartItemId = action.payload.cartItem.id;
+            state.cartItems = state.cartItems.filter(item=>item.id !== cartItemId);
+            state.cartTotalPrice -= action.payload.price;
+        },
+        replaceCart:(state,action)=>{
+            state.cartID = action.payload.id;
+            state.cartItems = action.payload.cartItems; // be consistent with your API response naming
+            state.cartTotalPrice = action.payload.totalPrice;
         }
     },
     extraReducers:(builder)=>{
@@ -82,4 +116,4 @@ const cartSlice = createSlice({
     }
 });
 export default cartSlice.reducer;
-export  const {ClearCart} = cartSlice.actions ;
+export  const {ClearCart,replaceCart,GuestAddToCart,GuestUpdateCartItem,GuestRemoveFromCart} = cartSlice.actions ;

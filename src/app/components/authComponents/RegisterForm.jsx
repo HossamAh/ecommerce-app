@@ -5,6 +5,9 @@ import * as Yup from 'yup';
 import nextConfig from '../../../../next.config.mjs';
 import { useRouter } from 'next/navigation';
 import {useState} from 'react';
+import {UserLogin} from '../../features/thunks/UserThunk';
+import {useDispatch} from 'react-redux';
+
 export default function RegisterFrom(){
     const initialState = {
         'name':"",
@@ -24,6 +27,7 @@ export default function RegisterFrom(){
     });
 
     const router = useRouter();
+    const dispatch = useDispatch();
     const handleSubmit = async (values) => {
         const formData = new FormData();
         formData.append('name', values.name);
@@ -33,7 +37,12 @@ export default function RegisterFrom(){
         try {
             await axios.post(nextConfig.env.API_URL+'/api/auth/register', formData);
             // navigate('/login');
-            router.push('/login');
+            
+            // router.push('/login');
+            console.log("register success");
+            await dispatch(UserLogin(formData));
+            router.push("/");
+     
         } catch (error) {
             setErrorState("error in registering ,please try again.");
             console.error(error);
